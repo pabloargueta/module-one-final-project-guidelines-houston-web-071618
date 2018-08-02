@@ -15,7 +15,13 @@ def first_options
 
     end
     first_option
-  end
+end
+
+def highest_score
+  highest_score = Score.maximum("score")
+  highest_user = Score.find_by(score: highest_score).user.name
+  puts "#{highest_user} has the highest score of #{highest_score}"
+end
 
 def set_player_1
   # take in players input for their player name
@@ -118,7 +124,7 @@ def save_score(player, score)
 end
 
 def display_end_game
-  puts "This ends round 1."
+  puts "Round has ended."
   puts "Do you want end the game?"
   puts "1. Yes 2. No"
   user_input = gets.chomp.to_i
