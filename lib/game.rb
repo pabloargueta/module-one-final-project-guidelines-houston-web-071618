@@ -102,7 +102,6 @@ end
 def player_turn(questions_asked, player)
   puts "#{player.name}, your question is: "
   response = create_response(questions_asked, player)
-
   if response.option.is_correct
     puts "#{player.name} great job!"
     sleep(3)
@@ -118,6 +117,12 @@ def save_score(player, score)
   Score.create(user: player, score: score)
 end
 
+def display_end_game
+  puts "This ends round 1."
+  puts "Do you want end the game?"
+  puts "1. Yes 2. No"
+  user_input = gets.chomp.to_i
+end
 
 def game(player_1, player_2)
 
@@ -126,17 +131,23 @@ def game(player_1, player_2)
   player_1_score = 0
   player_2_score = 0
 
+  question_counter = 0
   while keep_playing do
     player_1_score += player_turn(questions_asked, player_1)
     player_2_score += player_turn(questions_asked, player_2)
-
-    break
-    # puts "End game?"
-    # quit = gets.chomp
-    # if
+    question_counter +=1
+      if question_counter == 1
+        user_input = display_end_game
+        if user_input == 1
+          break
+        else
+          question_counter = 0
+        end
+      end
   end
 
   save_score(player_1, player_1_score)
   save_score(player_2, player_2_score)
-
+  # binding.pry
+  system("ruby bin/run.rb")
 end

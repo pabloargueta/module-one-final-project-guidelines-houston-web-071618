@@ -10,12 +10,9 @@ if first_user_input == 1
   player_2 = set_player_2
 end
 
-game_intro
+# game_intro
 
-  game(player_1, player_2)
+game(player_1, player_2)
 
 
 false
-
-
-Question.find(questions_asked.last).options[0]
