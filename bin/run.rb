@@ -2,6 +2,7 @@ require_relative '../config/environment'
 require 'rest-client'
 require 'json'
 
+
 welcome
 first_user_input = first_options
 if first_user_input == 1

@@ -12,7 +12,7 @@ def first_options
       if first_option != 1 && first_option != 2
         puts "Please choose a valid option"
       end
-    
+
     end
     first_option
   end
@@ -77,7 +77,7 @@ def print_question_to_console(question)
   puts question.name
   question.options.shuffle.each_with_index do |choice, index|
     puts "#{index+1}: #{choice.name}"
-  end 
+  end
 end
 
 def initialize_question(questions_asked)
@@ -99,49 +99,44 @@ def create_response(questions_asked, player)
   Response.create(user: player, question: question, option: response)
 end
 
-
-
-
 def player_turn(questions_asked, player)
   puts "#{player.name}, your question is: "
   response = create_response(questions_asked, player)
-  
+
   if response.option.is_correct
     puts "#{player.name} great job!"
     sleep(3)
+    return 1
   else
     puts "Sorry better luck next time"
     sleep(3)
+    return 0
   end
 end
 
+def save_score(player, score)
+  Score.create(user: player, score: score)
+end
+
+
 def game(player_1, player_2)
-  
+
   keep_playing = true
   questions_asked = []
   player_1_score = 0
   player_2_score = 0
-  
+
   while keep_playing do
-    player_turn(questions_asked, player_1)
-    player_turn(questions_asked, player_2)
+    player_1_score += player_turn(questions_asked, player_1)
+    player_2_score += player_turn(questions_asked, player_2)
 
-
+    break
+    # puts "End game?"
+    # quit = gets.chomp
+    # if
   end
 
-
-  # need to get players from above
-
-  # ask player 1 a question
-
-  # if response == option[0] then is correct
-
-  # add one to user.score
-
-  # ask play 2 a question
-
-  # if response == option[0] then is correct
-  # add one to user.score
-
+  save_score(player_1, player_1_score)
+  save_score(player_2, player_2_score)
 
 end
