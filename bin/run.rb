@@ -24,6 +24,7 @@ welcome
      game(player_1, player_2)
    elsif first_user_input == "high_score"
      highest_score
+     main
    end
 
  end

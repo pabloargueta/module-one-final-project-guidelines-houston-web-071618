@@ -21,10 +21,40 @@ def first_options
   first_option = $prompt.select("Please choose an option" , %w(start_game high_score))
 end
 
+def select_difficulty(questions_asked)
+  user_input_dif = first_option = $prompt.select("Pick a difficulty from the list:" , %w(hard easy medium all))
+  if user_input_dif != "all"
+      question_difficulty_array = Question.select do |question|
+        question.difficulty != user_input_dif
+      end
+      question_difficulty_array.each do |question|
+        questions_asked << question.id
+      end
+    end
+    questions_asked
+end
+
+def select_category(question_asked)
+  user_input_dif = first_option = $prompt.select("Pick a category from the list:" , %w(sports films video_games science_computers general_knowledge music))
+  if user_input_dif != "all"
+      question_difficulty_array = Question.select do |question|
+        question.difficulty != user_input_dif
+      end
+      question_difficulty_array.each do |question|
+        questions_asked << question.id
+      end
+    end
+    questions_asked
+end
+
 def highest_score
   highest_score = Score.maximum("score")
   highest_user = Score.find_by(score: highest_score).user.name
-  puts "#{highest_user} has the highest score of #{highest_score}"
+  system("clear")
+  welcome
+  puts "\n"
+  puts "#{highest_user.capitalize} has the highest score with a total score of #{highest_score}"
+  sleep(2)
 end
 
 def display_player_addition(player)
@@ -135,6 +165,30 @@ def question_display(question, player)
   puts "\n"
   sleep(2)
 end
+
+def response_right_display(player)
+  system("clear")
+  puts "######################################################################"
+  puts "######################################################################"
+  puts "#########                 I love trivia!               ###############"
+  puts "######################################################################"
+  puts "\n"
+  puts  "#{player.name.capitalize} great job!"
+  sleep(2)
+end
+
+def response_wrong_display(player, response)
+  answer = response.question.options[0]
+  system("clear")
+  puts "######################################################################"
+  puts "######################################################################"
+  puts "#########                 I love trivia!               ###############"
+  puts "######################################################################"
+  puts "\n"
+  puts  "Sorry #{player.name.capitalize} the correct answer is #{answer.name}"
+  sleep(2)
+end
+
 def create_response(questions_asked, player)
   current_options = initialize_question(questions_asked, player)
   question = current_options[0].question
@@ -143,14 +197,13 @@ def create_response(questions_asked, player)
 end
 
 def player_turn(questions_asked, player)
-  puts "#{player.name}, your question is: "
+  # puts "#{player.name}, your question is: "
   response = create_response(questions_asked, player)
   if response.option.is_correct
-    puts "#{player.name.capitalize} great job!"
-    sleep(3)
+    response_right_display(player)
     return 1
   else
-    puts "Sorry better luck next time"
+    response_wrong_display(player, response)
     sleep(3)
     return 0
   end
@@ -160,17 +213,32 @@ def save_score(player, score)
   Score.create(user: player, score: score)
 end
 
-def display_end_game
-  puts "Round has ended."
-  puts "Do you want end the game?"
-  puts "1. Yes 2. No"
-  user_input = gets.chomp.to_i
+def display_end_game(player1, player2, player1score, player2score)
+  system("clear")
+  puts "######################################################################"
+  puts "######################################################################"
+  puts "#########                 I love trivia!               ###############"
+  puts "######################################################################"
+  puts "\n"
+  puts "This round has ended."
+  puts "\n"
+  user_input = $prompt.select("Do you want to end the game?" , %w(Yes No))
+
+  if user_input == "Yes"
+    save_score(player1, player1score)
+    save_score(player2, player2score)
+    return 1
+  else 
+    return 0
+  end
 end
 
 def game(player_1, player_2)
 
   keep_playing = true
   questions_asked = []
+  select_difficulty(questions_asked)
+  # select_category(question_asked)
   player_1_score = 0
   player_2_score = 0
 
@@ -179,8 +247,8 @@ def game(player_1, player_2)
     player_1_score += player_turn(questions_asked, player_1)
     player_2_score += player_turn(questions_asked, player_2)
     question_counter +=1
-      if question_counter == 5
-        user_input = display_end_game
+      if question_counter == 1
+        user_input = display_end_game(player_1, player_2, player_1_score, player_2_score)
         if user_input == 1
           break
         else
@@ -188,9 +256,6 @@ def game(player_1, player_2)
         end
       end
   end
-
-  save_score(player_1, player_1_score)
-  save_score(player_2, player_2_score)
   # binding.pry
   system("ruby bin/run.rb")
 end
