@@ -53,13 +53,13 @@ def set_player_2
 end
 
 def game_intro
-  # sleep(3)
+  sleep(3)
   puts "***************************Game is starting:*************************"
-  # sleep(1)
+  sleep(3)
   puts "3"
-  # sleep(1)
+  sleep(1)
   puts "2"
-  # sleep(1)
+  sleep(1)
   puts "1"
   false
 end
@@ -104,15 +104,15 @@ end
 
 def player_turn(questions_asked, player)
   puts "#{player.name}, your question is: "
-  create_response(questions_asked, player)
-  binding.pry
-  # if current_options[response - 1].is_correct 
-  #   puts "#{player.name} great job!"
-  #   return 1
-  # else
-  #   puts "Sorry better luck next time"
-  #   return 0
-  # end
+  response = create_response(questions_asked, player)
+  
+  if response.option.is_correct
+    puts "#{player.name} great job!"
+    sleep(3)
+  else
+    puts "Sorry better luck next time"
+    sleep(3)
+  end
 end
 
 def game(player_1, player_2)
@@ -124,8 +124,9 @@ def game(player_1, player_2)
   
   while keep_playing do
     player_turn(questions_asked, player_1)
+    player_turn(questions_asked, player_2)
 
-    binding.pry
+
   end
 
 
