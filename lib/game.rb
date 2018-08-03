@@ -1,23 +1,26 @@
 $prompt = TTY::Prompt.new
+
+
 def welcome
-  puts "######################################################################"
-  puts "######################################################################"
-  puts "#########  Welcome to Marylene & Pablo's Trivia Game!  ###############"
-  puts "#########                                              ###############"
-  puts "######################################################################"
-  puts "######################################################################"
+  puts "######################################################################".blue
+  puts "######################################################################".blue
+  puts "#########  ".blue + "Welcome to Marylene & Pablo's Trivia Game!"+"  ###############".blue
+  puts "#########                                              ###############".blue
+  puts "######################################################################".blue
+  puts "######################################################################".blue
 end
 
 def setup_display
-  puts "######################################################################"
-  puts "#########            Setup your game                   ###############"
-  puts "#########       This is a two player game!             ###############"
-  puts "######################################################################"
-  puts "######### Don't hate the player, hate the game! ######################"
-  puts "######################################################################"
+  puts "######################################################################".blue
+  puts "#########              ".blue + "Setup your game" + "                   #############".blue
+  puts "#########        ".blue + "This is a two player game!"+"             ##############".blue
+  puts "######################################################################".blue
+  puts "############   ".blue + "Don't hate the player, hate the game!"+ " #################".blue
+  puts "######################################################################".blue
 end
 
 def first_options
+  puts "\n"
   first_option = $prompt.select("Please choose an option" , %w(Start_game High_score)).downcase
 end
 
@@ -53,22 +56,30 @@ end
 def select_category(questions_asked)
   setup_display
   puts "\n"
-  user_input_cat = $prompt.select("Pick a category from the list:", %w(All Sports Films Video_Games Science_Computers General_knowledge Music)).downcase
-  case user_input_cat
-    when "sports"
-      questions_asked << Question.where.not(category: "Sports").ids
-    when "films"
-      questions_asked << Question.where.not(category: "Entertainment: Film").ids
-    when "video_games"
-      questions_asked << Question.where.not(category: "Entertainment: Video Games").ids
-    when "science_computers"
-      questions_asked << Question.where.not(category: "Science: Computers").ids
-    when "general_knowledge"
-      questions_asked << Question.where.not(category: "General Knowledge").ids
-    when "music"
-      questions_asked << Question.where.not(category: "Entertainment: Music").ids
+  choices = %w(All Sports Films Video_Games Science_Computers General_knowledge Music)
+  user_input_cat = $prompt.multi_select("Pick one or more categories:", choices) 
+
+  user_input_cat.each do |choice|
+
+    case choice.downcase
+      when "sports"
+        questions_asked << Question.where(category: "Sports").ids
+      when "films"
+        questions_asked << Question.where(category: "Entertainment: Film").ids
+      when "video_games"
+        questions_asked << Question.where(category: "Entertainment: Video Games").ids
+      when "science_computers"
+        questions_asked << Question.where(category: "Science: Computers").ids
+      when "general_knowledge"
+        questions_asked << Question.where(category: "General Knowledge").ids
+      when "music"
+        questions_asked << Question.where(category: "Entertainment: Music").ids
+      else
+        questions_asked << Question.ids
+    end
   end
-   questions_asked.flatten
+
+    questions_asked.flatten
 end
 
 # def select_difficulty(questions_asked)
@@ -153,10 +164,10 @@ end
 
 def loading_screen
   system("clear")
-  puts "######################################################################"
-  puts "######################################################################"
-  puts "#########         Loading Trivia Game                  ###############"
-  puts "######################################################################"
+  puts "######################################################################".blue
+  puts "######################################################################".blue
+  puts "#########           ".blue + "Loading Trivia Game" + "                 ##############".blue
+  puts "######################################################################".blue
 end
 
 def game_intro
@@ -186,17 +197,14 @@ def game_intro
 end
 
 def create_question(questions_asked)
-  total_questions = Question.all.length
-  id = rand(1..total_questions)
-  while questions_asked.include?(id) do
-    id = rand(1..total_questions)
-  end
-  questions_asked << id
+  id = questions_asked.sample
+  questions_asked.delete(id)
   Question.find(id)
 end
 
 def print_question_to_console(question, player)
-  options = question.options.shuffle
+  options = question.options
+  options = options.shuffle
   question_display(question, player)
   # puts option_array
   options
@@ -209,11 +217,11 @@ end
 
 def receive_player_response(current_options)
   option_array =[]
-  current_options.each do |choice|
+  current_options.each_with_index do |choice, index|
     parsed_name = Nokogiri::HTML.parse "#{choice.name}"
-    option_array << "#{parsed_name.text}"
+    option_array << "#{index + 1}: #{parsed_name.text}"
   end
-  response = $prompt.enum_select("Select below", option_array)[0].to_i
+  response = $prompt.select("Select below", option_array)[0].to_i
   current_options[response - 1]
 end
 
@@ -249,9 +257,10 @@ end
 
 def response_wrong_display(player, response)
   answer = response.question.options[0]
+  parsed_answer = Nokogiri::HTML.parse "#{answer.name}"
  in_game_display
   puts "\n"
-  puts  "Sorry #{player.name.capitalize} the correct answer is #{answer.name}"
+  puts  "Sorry #{player.name.capitalize} the correct answer is #{parsed_answer.text}"
   puts "\n"
   puts "\n"
   sleep(0.5)
@@ -262,12 +271,13 @@ def create_response(questions_asked, player)
   current_options = initialize_question(questions_asked, player)
   question = current_options[0].question
   response = receive_player_response(current_options)
+  
   Response.create(user: player, question: question, option: response)
 end
 
 def player_turn(questions_asked, player)
-  # puts "#{player.name}, your question is: "
   response = create_response(questions_asked, player)
+  
   if response.option.is_correct
     response_right_display(player)
     return 1

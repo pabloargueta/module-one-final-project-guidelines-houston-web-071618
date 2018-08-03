@@ -13,3 +13,6 @@ gem "json", "~> 2.1"
 gem 'tty-prompt'
 
 gem 'nokogiri'
+
+gem 'colorize'
+
