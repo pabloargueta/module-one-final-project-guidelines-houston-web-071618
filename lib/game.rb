@@ -22,6 +22,8 @@ def first_options
 end
 
 def select_difficulty(questions_asked)
+  setup_display
+  puts "\n"
   user_input_dif = first_option = $prompt.select("Pick a difficulty from the list:" , %w(hard easy medium all))
   if user_input_dif != "all"
       question_difficulty_array = Question.select do |question|
@@ -59,34 +61,32 @@ end
 
 def display_player_addition(player)
   system("clear")
-  puts "######################################################################"
-  puts "######################################################################"
-  puts "#########            Setup your game                   ###############"
-  puts "######################################################################"
+  setup_display
+  puts "\n"
   puts "Success, #{player.name.capitalize} you have been added to the game!"
   puts "\n"
-  sleep(2)
+  sleep(1.5)
   system("clear")
 end
 
 def display_returning_player(player)
   system("clear")
-  puts "######################################################################"
-  puts "######################################################################"
-  puts "#########            Setup your game                   ###############"
-  puts "######################################################################"
+  setup_display
+  puts "\n"
   puts "Welcome back, #{player.name.capitalize}!"
   puts "\n"
-  sleep(2)
+  sleep(1.5)
   system("clear")
 end
 
 def set_player
   system("clear")
   setup_display
+  puts "\n"
   # take in players input for their player name
-  puts "Enter Player's Name:"
-  player_1 = gets.chomp.downcase
+  # puts "Enter Player's Name:"
+  player_1 = $prompt.ask('What is your name?')
+
   find_player_1 = User.find_by(name: player_1)
 
   if find_player_1 == nil
@@ -101,23 +101,38 @@ def set_player
   end
 end
 
-def game_intro
+def loading_screen
   system("clear")
   puts "######################################################################"
   puts "######################################################################"
-  puts "#########                Loading Game                  ###############"
+  puts "#########         Loading Trivia Game                  ###############"
   puts "######################################################################"
-  sleep(1)
-  puts "######################################################################"
-  puts "#########                      3                       ###############"
-  puts "######################################################################"
-  sleep(1)
-  puts "#########                      2                       ###############"
-  puts "######################################################################"
-  sleep(1)
-  puts "#########                      1                       ###############"
-  puts "######################################################################"
-  sleep(1)
+end
+
+def game_intro
+  loading_screen
+  # sleep(1)
+  # puts "######################################################################"
+  # puts "#########                      3                       ###############"
+  # puts "######################################################################"
+  # sleep(1)
+  # puts "#########                      2                       ###############"
+  # puts "######################################################################"
+  # sleep(1)
+  # puts "#########                      1                       ###############"
+  # puts "######################################################################"
+  # sleep(1)
+  puts "\n"
+
+  puts_array = ""
+
+  for i in 1..70
+    loading_screen
+    puts_array += "#"
+    puts puts_array
+    puts puts_array
+    sleep(0.015)
+  end
 end
 
 def create_question(questions_asked)
@@ -130,12 +145,9 @@ def create_question(questions_asked)
 end
 
 def print_question_to_console(question, player)
-  option_array = []
-  options = question.options.shuffle.each_with_index do |choice, index|
-    option_array << "#{index+1}: #{choice.name}"
-  end
+  options = question.options.shuffle
   question_display(question, player)
-  puts option_array
+  # puts option_array
   options
 end
 
@@ -145,25 +157,31 @@ def initialize_question(questions_asked, player)
 end
 
 def receive_player_response(current_options)
-  puts "**************************************"
-  puts "Please choose a valid answer"
-  response = gets.chomp.to_i
+  option_array =[]
+  current_options.each_with_index do |choice, index|
+    option_array << "#{index+1}: #{choice.name}"
+  end
+  response = $prompt.enum_select("Select below", option_array)[0].to_i
   current_options[response - 1]
 end
 
-def question_display(question, player)
+def in_game_display
   system("clear")
   puts "######################################################################"
   puts "######################################################################"
   puts "#########                 I love trivia!               ###############"
   puts "######################################################################"
+end
+
+def question_display(question, player)
+  in_game_display
   puts "\n"
   puts  "#{player.name.capitalize} it's your turn!"
-  sleep(1)
+  sleep(0.5)
   puts "\n"
   puts "#{question.name}"
   puts "\n"
-  sleep(2)
+  sleep(1)
 end
 
 def response_right_display(player)
@@ -179,14 +197,10 @@ end
 
 def response_wrong_display(player, response)
   answer = response.question.options[0]
-  system("clear")
-  puts "######################################################################"
-  puts "######################################################################"
-  puts "#########                 I love trivia!               ###############"
-  puts "######################################################################"
+ in_game_display
   puts "\n"
   puts  "Sorry #{player.name.capitalize} the correct answer is #{answer.name}"
-  sleep(2)
+  sleep(1.5)
 end
 
 def create_response(questions_asked, player)
@@ -204,21 +218,26 @@ def player_turn(questions_asked, player)
     return 1
   else
     response_wrong_display(player, response)
-    sleep(3)
+    sleep(2)
     return 0
   end
 end
 
-def save_score(player, score)
-  Score.create(user: player, score: score)
-end
-
-def display_end_game(player1, player2, player1score, player2score)
+def end_game_display
   system("clear")
   puts "######################################################################"
   puts "######################################################################"
-  puts "#########                 I love trivia!               ###############"
+  puts "#########        Thank you for playing trivia!         ###############"
   puts "######################################################################"
+end
+
+def save_score(player, score)
+  Score.create(user: player, score: score)
+  end_game_display
+end
+
+def display_end_game(player1, player2, player1score, player2score)
+  in_game_display
   puts "\n"
   puts "This round has ended."
   puts "\n"
@@ -227,6 +246,7 @@ def display_end_game(player1, player2, player1score, player2score)
   if user_input == "Yes"
     save_score(player1, player1score)
     save_score(player2, player2score)
+    sleep(2)
     return 1
   else 
     return 0
@@ -257,5 +277,4 @@ def game(player_1, player_2)
       end
   end
   # binding.pry
-  system("ruby bin/run.rb")
 end

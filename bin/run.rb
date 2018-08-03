@@ -7,7 +7,7 @@ require 'json'
 
 
 
-# game_intro
+game_intro
 
 # game(player_1, player_2)
 
@@ -22,6 +22,7 @@ welcome
      player_1 = set_player
      player_2 = set_player
      game(player_1, player_2)
+     main
    elsif first_user_input == "high_score"
      highest_score
      main
