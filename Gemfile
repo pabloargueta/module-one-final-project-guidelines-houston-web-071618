@@ -16,3 +16,4 @@ gem 'nokogiri'
 
 gem 'colorize'
 
+gem 'tty-progressbar'

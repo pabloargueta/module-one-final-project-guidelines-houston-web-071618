@@ -41,7 +41,7 @@ end
 def select_difficulty(questions_asked)
   setup_display
   puts "\n"
-  user_input_dif = $prompt.select("Pick a difficulty from the list:" , %w(All Easy Medium Hard)).downcase
+  user_input_dif = $prompt.select("Pick a difficulty from the list:" , %w(Easy Medium Hard)).downcase
   if user_input_dif != "all"
       question_difficulty_array = Question.select do |question|
         question.difficulty != user_input_dif
@@ -185,15 +185,21 @@ def game_intro
   # sleep(1)
   puts "\n"
 
-  puts_array = ""
+  bar = TTY::ProgressBar.new("Loading Game [:bar]", total: 55)
+30.times do
+  sleep(0.2)
+  bar.advance(2)
+end
 
-  for i in 1..70
-    loading_screen
-    puts_array += "#"
-    puts puts_array
-    puts puts_array
-    sleep(0.015)
-  end
+  # puts_array = ""
+
+  # for i in 1..70
+  #   loading_screen
+  #   puts_array += "#"
+  #   puts puts_array
+  #   puts puts_array
+  #   sleep(0.015)
+  # end
 end
 
 def create_question(questions_asked)
@@ -227,10 +233,10 @@ end
 
 def in_game_display
   system("clear")
-  puts "######################################################################"
-  puts "######################################################################"
-  puts "#########                 I love trivia!               ###############"
-  puts "######################################################################"
+  puts "######################################################################".blue
+  puts "######################################################################".blue
+  puts "#########                 ".blue + "I love trivia!" + "               ###############".blue
+  puts "######################################################################".blue
 end
 
 def question_display(question, player)
@@ -289,10 +295,10 @@ end
 
 def end_game_display
   system("clear")
-  puts "######################################################################"
-  puts "######################################################################"
-  puts "#########        Thank you for playing trivia!         ###############"
-  puts "######################################################################"
+  puts "######################################################################".blue
+  puts "######################################################################".blue
+  puts "#########        ".blue + "Thank you for playing trivia!" + "         ###############".blue
+  puts "######################################################################".blue
 end
 
 def save_score(player, score)
