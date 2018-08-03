@@ -18,13 +18,27 @@ def setup_display
 end
 
 def first_options
-  first_option = $prompt.select("Please choose an option" , %w(start_game high_score))
+  first_option = $prompt.select("Please choose an option" , %w(Start_game High_score)).downcase
+end
+
+def select_cat_dif(questions_asked)
+  setup_display
+  puts "\n"
+  user_input_cat_dif = $prompt.select("Pick Questions by Difficulty or Category:" , %w(Difficulty Category)).downcase
+  if user_input_cat_dif == "difficulty"
+    system("clear")
+    select_difficulty(questions_asked)
+  else user_input_cat_dif == "category"
+    system("clear")
+    select_category(questions_asked)
+  end
+  questions_asked
 end
 
 def select_difficulty(questions_asked)
   setup_display
   puts "\n"
-  user_input_dif = first_option = $prompt.select("Pick a difficulty from the list:" , %w(hard easy medium all))
+  user_input_dif = $prompt.select("Pick a difficulty from the list:" , %w(All Easy Medium Hard)).downcase
   if user_input_dif != "all"
       question_difficulty_array = Question.select do |question|
         question.difficulty != user_input_dif
@@ -36,18 +50,54 @@ def select_difficulty(questions_asked)
     questions_asked
 end
 
-def select_category(question_asked)
-  user_input_dif = first_option = $prompt.select("Pick a category from the list:" , %w(sports films video_games science_computers general_knowledge music))
-  if user_input_dif != "all"
-      question_difficulty_array = Question.select do |question|
-        question.difficulty != user_input_dif
-      end
-      question_difficulty_array.each do |question|
-        questions_asked << question.id
-      end
-    end
-    questions_asked
+def select_category(questions_asked)
+  setup_display
+  puts "\n"
+  user_input_cat = $prompt.select("Pick a category from the list:", %w(All Sports Films Video_Games Science_Computers General_knowledge Music)).downcase
+  case user_input_cat
+    when "sports"
+      questions_asked << Question.where.not(category: "Sports").ids
+    when "films"
+      questions_asked << Question.where.not(category: "Entertainment: Film").ids
+    when "video_games"
+      questions_asked << Question.where.not(category: "Entertainment: Video Games").ids
+    when "science_computers"
+      questions_asked << Question.where.not(category: "Science: Computers").ids
+    when "general_knowledge"
+      questions_asked << Question.where.not(category: "General Knowledge").ids
+    when "music"
+      questions_asked << Question.where.not(category: "Entertainment: Music").ids
+  end
+   questions_asked.flatten
 end
+
+# def select_difficulty(questions_asked)
+#   setup_display
+#   puts "\n"
+#   user_input_dif = first_option = $prompt.select("Pick a difficulty from the list:" , %w(All Easy Medium Hard)).downcase
+#   if user_input_dif != "all"
+#       question_difficulty_array = Question.select do |question|
+#         question.difficulty != user_input_dif
+#       end
+#       question_difficulty_array.each do |question|
+#         questions_asked << question.id
+#       end
+#     end
+#     questions_asked
+# end
+
+# def select_category(questions_asked)
+#   user_input_dif = first_option = $prompt.select("Pick a category from the list:" , %w(sports films video_games science_computers general_knowledge music))
+#   if user_input_dif != "all"
+#       question_difficulty_array = Question.select do |question|
+#         question.difficulty != user_input_dif
+#       end
+#       question_difficulty_array.each do |question|
+#         questions_asked << question.id
+#       end
+#     end
+#     questions_asked
+# end
 
 def highest_score
   highest_score = Score.maximum("score")
@@ -85,7 +135,7 @@ def set_player
   puts "\n"
   # take in players input for their player name
   # puts "Enter Player's Name:"
-  player_1 = $prompt.ask('What is your name?')
+  player_1 = $prompt.ask('What is your name?', required: true)
 
   find_player_1 = User.find_by(name: player_1)
 
@@ -136,9 +186,10 @@ def game_intro
 end
 
 def create_question(questions_asked)
-  id = rand(1..50)
+  total_questions = Question.all.length
+  id = rand(1..total_questions)
   while questions_asked.include?(id) do
-    id = rand(1..50)
+    id = rand(1..total_questions)
   end
   questions_asked << id
   Question.find(id)
@@ -158,8 +209,9 @@ end
 
 def receive_player_response(current_options)
   option_array =[]
-  current_options.each_with_index do |choice, index|
-    option_array << "#{index+1}: #{choice.name}"
+  current_options.each do |choice|
+    parsed_name = Nokogiri::HTML.parse "#{choice.name}"
+    option_array << "#{parsed_name.text}"
   end
   response = $prompt.enum_select("Select below", option_array)[0].to_i
   current_options[response - 1]
@@ -179,20 +231,20 @@ def question_display(question, player)
   puts  "#{player.name.capitalize} it's your turn!"
   sleep(0.5)
   puts "\n"
-  puts "#{question.name}"
+  question_name = Nokogiri::HTML.parse "#{question.name}"
+  puts question_name.text
   puts "\n"
   sleep(1)
 end
 
 def response_right_display(player)
-  system("clear")
-  puts "######################################################################"
-  puts "######################################################################"
-  puts "#########                 I love trivia!               ###############"
-  puts "######################################################################"
+  in_game_display
   puts "\n"
   puts  "#{player.name.capitalize} great job!"
-  sleep(2)
+  puts "\n"
+  puts "\n"
+  sleep(0.5)
+  $prompt.keypress("Press space or enter to continue", keys: [:space, :return])
 end
 
 def response_wrong_display(player, response)
@@ -200,7 +252,10 @@ def response_wrong_display(player, response)
  in_game_display
   puts "\n"
   puts  "Sorry #{player.name.capitalize} the correct answer is #{answer.name}"
-  sleep(1.5)
+  puts "\n"
+  puts "\n"
+  sleep(0.5)
+  $prompt.keypress("Press space or enter to continue", keys: [:space, :return])
 end
 
 def create_response(questions_asked, player)
@@ -218,7 +273,6 @@ def player_turn(questions_asked, player)
     return 1
   else
     response_wrong_display(player, response)
-    sleep(2)
     return 0
   end
 end
@@ -241,9 +295,9 @@ def display_end_game(player1, player2, player1score, player2score)
   puts "\n"
   puts "This round has ended."
   puts "\n"
-  user_input = $prompt.select("Do you want to end the game?" , %w(Yes No))
+  user_input = $prompt.select("Do you want to Continue to the next round?" , %w(Yes No)).downcase
 
-  if user_input == "Yes"
+  if user_input == "no"
     save_score(player1, player1score)
     save_score(player2, player2score)
     sleep(2)
@@ -257,8 +311,8 @@ def game(player_1, player_2)
 
   keep_playing = true
   questions_asked = []
-  select_difficulty(questions_asked)
-  # select_category(question_asked)
+  questions_asked = select_cat_dif(questions_asked).flatten
+  
   player_1_score = 0
   player_2_score = 0
 
